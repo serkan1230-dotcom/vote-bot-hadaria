@@ -27,21 +27,36 @@ class HadariaVoteBot:
         self.setup_chrome()
 
     def setup_chrome(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument(f"--user-data-dir={self.user_data_dir}")
-        chrome_options.add_argument("--no-first-run")
-        chrome_options.add_argument("--no-default-browser-check")
-        chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        chrome_options.add_argument('--log-level=3')
-        chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument(f"--user-data-dir={self.user_data_dir}")
+    chrome_options.add_argument("--no-first-run")
+    chrome_options.add_argument("--no-default-browser-check")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    chrome_options.add_argument('--log-level=3')
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
+    try:
+        if 'RENDER' in os.environ:
+            self.log_callback("🔧 Initialisation de ChromeDriver pour Render...")
+            chrome_options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome"
+            driver_path = ChromeDriverManager().install()
+            service = Service(driver_path, service_args=['--verbose'], log_path=os.devnull)
+        else:
+            self.log_callback("🔧 Initialisation de ChromeDriver local...")
+            service = Service(ChromeDriverManager().install(), service_args=['--verbose'], log_path=os.devnull)
+        self.driver = webdriver.Chrome(service=service, options=chrome_options)
+        self.wait = WebDriverWait(self.driver, 20)
+        self.log_callback("✅ ChromeDriver initialisé avec succès")
+    except Exception as e:
+        self.log_callback(f"❌ Erreur ChromeDriver: {e}")
+        raise Exception(f"Impossible d'initialiser le navigateur Chrome: {e}")
         try:
             if 'RENDER' in os.environ:
                 self.log_callback("🔧 Initialisation de ChromeDriver pour Render...")
